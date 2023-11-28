@@ -33,6 +33,7 @@ Scheduling of 7 power units in 4 equal intervals.
 '''
 import random
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Define the power units and their capacities and maintenance intervals
 units = [
@@ -49,8 +50,8 @@ units = [
 max_loads = [80, 90, 65, 70]
 
 # Define the population size and number of generations
-pop_size = 50
-generations = 100
+pop_size = 100
+generations = 50
 
 # Define the crossover and mutation probabilities
 crossover_probability = 0.7
@@ -61,8 +62,20 @@ population = [[random.choice(unit["maintenance"]) for unit in units] for _ in ra
 
 # Define the fitness function
 def fitness(schedule):
-    reserve = [sum(int(schedule[i][j]) * units[i]["capacity"] for i in range(len(units))) - load for j, load in enumerate(max_loads)]
-    return max(reserve)
+    # Initialize an empty list to store the reserves for each interval
+    reserves = []
+
+    # Iterate over each interval
+    for j, load in enumerate(max_loads):
+        # Calculate the total capacity for the current interval
+        total_capacity = sum(max(int(schedule[i][j]) * units[i]["capacity"], 0) for i in range(len(units)))
+
+        # Calculate the reserve for the current interval and add it to the reserves list
+        reserve = total_capacity - load
+        reserves.append(reserve)
+
+    # The fitness is the maximum reserve
+    return max(reserves)
 
 # Run the GA for a set number of generations
 best_fitness = []
@@ -120,7 +133,6 @@ for _ in range(generations):
     population = children
 for i in population:
     print(i)
-
 # Plot the best and average fitness over generations
 plt.plot(best_fitness, label="Best Fitness")
 plt.plot(avg_fitness, label="Average Fitness")
